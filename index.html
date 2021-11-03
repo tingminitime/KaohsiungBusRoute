@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta
+    http-equiv="X-UA-Compatible"
+    content="IE=edge"
+  >
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  >
+  <title>KAOHSIUNG Bus Route</title>
+  <link
+    rel="stylesheet"
+    href="style/all.css"
+  >
+</head>
+
+<body>
+  <div class="container">
+    <h1 class="title">KAOHSIUNG BUS ROUTE</h1>
+    <div class="main">
+      <div class="filter">
+        <div class="filter__section">
+          <label class="filter__labelSection">
+            <div class="filter__sectionText">搜尋公車路線</div>
+            <div class="filter__routeName"></div>
+            <input
+              type="text"
+              class="filter__search"
+              placeholder="例 : 紅56"
+              autofocus
+            >
+          </label>
+          <div class="filter__listContainer">
+            <ul class="filter__routeList">
+              <!-- 載入資料 -->
+              <!-- <li class="filter__routeItem">
+                <div
+                  class="filter__routeBtn"
+                  role="button"
+                >文府國小</div>
+              </li> -->
+            </ul>
+          </div>
+        </div>
+        <!-- <button class="filter__confirm">搜尋</button> -->
+      </div>
+      <div class="list">
+        <ul class="switch">
+          <li class="switch__item">
+            <button
+              class="switch__btn switch__btn--forth"
+              data-direct="0"
+            >往</button>
+          </li>
+          <li class="switch__item">
+            <button
+              class="switch__btn switch__btn--back"
+              data-direct="1"
+            >返</button>
+          </li>
+        </ul>
+        <ul
+          class="routeList forthRouteList"
+          data-direct="0"
+        >
+          <!-- 載入資料 -->
+        </ul>
+        <ul
+          class="routeList backRouteList"
+          data-direct="1"
+        >
+          <!-- 載入資料 -->
+          <!-- <li class="routeList__item">
+            <div class="routeList__mainInfo">
+              <div class="routeList__timeLeft">${}</div>
+              <div class="routeList__stopInfo">${} / ${}</div>
+            </div>
+            <div class="routeList__busID">${}</div>
+          </li> -->
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- jsSHA -->
+  <script
+    src='https://cdnjs.cloudflare.com/ajax/libs/jsSHA/3.2.0/sha.js'
+    integrity='sha512-mvfoZwdzM8yPhlNxN1lU8S5wcfC5aPRCD3W0jsOeA+D75MMCrycxQqIvt6K7c5P7jItn7AXiAreuR+eockUHwQ=='
+    crossorigin='anonymous'
+  ></script>
+  <!-- axios -->
+  <script
+    src='https://cdnjs.cloudflare.com/ajax/libs/axios/0.24.0/axios.min.js'
+    integrity='sha512-u9akINsQsAkG9xjc1cnGF4zw5TFDwkxuc9vUp5dltDWYCSmyd0meygbvgXrlc/z7/o4a19Fb5V0OUE58J7dcyw=='
+    crossorigin='anonymous'
+  ></script>
+  <script src="update.js"></script>
+</body>
+
+</html>
