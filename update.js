@@ -144,56 +144,48 @@ function runTask() {
     console.log('完全符合的站序資料: ', stopMatchData)
     stopForthData = stopMatchData[0]['Stops']
     stopBackData = stopMatchData[1]['Stops']
-    // console.log(stopForthData)
-    // console.log(stopBackData)
   }
-
-  // function forthStopDataCombined() {
-  //   stopForthData
-  // }
 
   function stopStatusTextHandler(status) {
     switch (status) {
       case 0:
-        console.log('正常')
         statusText = '正常'
         break
       case 1:
-        console.log('尚未發車')
         statusText = '尚未發車'
         break
       case 2:
-        console.log('交管不停靠')
         statusText = '交管不停靠'
         break
       case 3:
-        console.log('末班車已過')
         statusText = '末班車已過'
         break
       case 4:
-        console.log('今日未營運')
         statusText = '今日未營運'
         break
       default:
-        console.log('未知')
         statusText = '未知'
     }
     return statusText
   }
 
-  function combinedForthDataHandler() {
-    stopForthData.forEach(stopForthItem => {
-      estForthData.forEach(estForthItem => {
-        if (stopForthItem['StopUID'] === estForthItem['StopUID']) {
-          stopForthItem['plateNumb'] = estForthItem['PlateNumb'] // 車牌號碼
-          stopForthItem['stopStatus'] = estForthItem['StopStatus'] // 車輛對站牌狀態
-          stopForthItem['estimateTime'] = estForthItem['EstimateTime'] ? estForthItem['EstimateTime'] : '' // 預估到站時間
-          stopForthItem['nextBusTime'] = estForthItem['NextBusTime']
-          stopForthItem['stopStatusText'] = stopStatusTextHandler(estForthItem['StopStatus'])
-        }
-      })
-    })
-    console.log('(去程)組合站序資料', stopForthData)
+  function parseDateTime(time) {
+    if (!time) return '––'
+    let parseTime = Date.parse(time)
+    let getDate = new Date(parseTime)
+    let nextBusHour = getDate.getHours()
+    let nextBusMin = getDate.getMinutes()
+    nextBusMin = nextBusMin < 10 ? '0' + nextBusMin : nextBusMin
+    let nextBusTime = `${nextBusHour}:${nextBusMin}`
+    return nextBusTime
+  }
+
+  function estTimeText(estimateTime) {
+    let estimateTimeText = ''
+    if (estimateTime === 0) estimateTimeText = '進站中'
+    else if (estimateTime <= 2 && estimateTime > 0) estimateTimeText = '即將進站'
+    else estimateTimeText = `${estimateTime} 分鐘`
+    return estimateTimeText
   }
 
   function combinedBackDataHandler() {
@@ -203,7 +195,7 @@ function runTask() {
           stopBackItem['plateNumb'] = estBackItem['PlateNumb'] // 車牌號碼
           stopBackItem['stopStatus'] = estBackItem['StopStatus'] // 車輛對站牌狀態
           stopBackItem['estimateTime'] = estBackItem['EstimateTime'] ? estBackItem['EstimateTime'] : '' // 預估到站時間
-          stopBackItem['nextBusTime'] = estBackItem['NextBusTime']
+          stopBackItem['nextBusTime'] = parseDateTime(estBackItem['NextBusTime'])
           stopBackItem['stopStatusText'] = stopStatusTextHandler(estBackItem['StopStatus'])
         }
       })
@@ -211,17 +203,29 @@ function runTask() {
     console.log('(返程)組合站序資料', stopBackData)
   }
 
+  function combinedForthDataHandler() {
+    stopForthData.forEach(stopForthItem => {
+      estForthData.forEach(estForthItem => {
+        if (stopForthItem['StopUID'] === estForthItem['StopUID']) {
+          stopForthItem['plateNumb'] = estForthItem['PlateNumb'] // 車牌號碼
+          stopForthItem['stopStatus'] = estForthItem['StopStatus'] // 車輛對站牌狀態
+          stopForthItem['estimateTime'] = estForthItem['EstimateTime'] ? estForthItem['EstimateTime'] : '' // 預估到站時間
+          stopForthItem['nextBusTime'] = parseDateTime(estForthItem['NextBusTime'])
+          stopForthItem['stopStatusText'] = stopStatusTextHandler(estForthItem['StopStatus'])
+        }
+      })
+    })
+    console.log('(去程)組合站序資料', stopForthData)
+  }
+
   function forthListRender() {
     let routeItem = ''
-
     stopForthData.forEach(item => {
       let estimateTime = Math.floor(item['estimateTime'] / 60)
       let estimateTimeText = ''
-
-      if (estimateTime === 0) estimateTimeText = '進站中'
-      else if (estimateTime <= 1 && estimateTime > 0) estimateTimeText = '即將進站'
-      else if (!estimateTime) estimateTimeText = '––'
-      else estimateTimeText = `${estimateTime} 分鐘`
+      if (item['stopStatus'] === 0) estimateTimeText = estTimeText(estimateTime)
+      else if (item['stopStatus'] === 1) estimateTimeText = item['nextBusTime']
+      else if (item['stopStatus'] > 1) estimateTimeText = '––'
 
       routeItem += `
       <li class="routeList__item">
@@ -229,7 +233,7 @@ function runTask() {
           <div class="routeList__timeLeft">${estimateTimeText}</div>
           <div class="routeList__stopInfo">${item['StopSequence']} / ${item['StopUID']} / ${item['StopName']['Zh_tw']}</div>
         </div>
-        <div class="routeList__busID">${item['plateNumb']}</div>
+        <div class="routeList__busID">${item['plateNumb'] ? item['plateNumb'] : item['stopStatusText']}</div>
       </li>
       `
     })
@@ -242,11 +246,9 @@ function runTask() {
     stopBackData.forEach(item => {
       let estimateTime = Math.floor(item['estimateTime'] / 60)
       let estimateTimeText = ''
-
-      if (estimateTime === 0) estimateTimeText = '進站中'
-      else if (estimateTime <= 1 && estimateTime > 0) estimateTimeText = '即將進站'
-      else if (!estimateTime) estimateTimeText = '––'
-      else estimateTimeText = `${estimateTime} 分鐘`
+      if (item['stopStatus'] === 0) estimateTimeText = estTimeText(estimateTime)
+      else if (item['stopStatus'] === 1) estimateTimeText = item['nextBusTime']
+      else if (item['stopStatus'] > 1) estimateTimeText = '––'
 
       routeItem += `
       <li class="routeList__item">
@@ -254,7 +256,7 @@ function runTask() {
           <div class="routeList__timeLeft">${estimateTimeText}</div>
           <div class="routeList__stopInfo">${item['StopUID']} / ${item['StopName']['Zh_tw']}</div>
         </div>
-        <div class="routeList__busID">${item['plateNumb']}</div>
+        <div class="routeList__busID">${item['plateNumb'] ? item['plateNumb'] : item['stopStatusText']}</div>
       </li>
       `
     })
