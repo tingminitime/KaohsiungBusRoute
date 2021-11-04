@@ -1,12 +1,10 @@
 // ----- 變數 -----
+// api data
 let KhRouteData = []
 let KhEstimateTimeData = []
 let KhStopData = []
-
-let filterObj = {}
-let busData = []
-let forthData = []
-let backData = []
+// temp variable
+let selectRouteZh = ''
 
 // Filter
 const keywordSearch = document.querySelector('.filter__search')
@@ -29,7 +27,7 @@ const apiBusRequest = axios.create({
 // API 取得高雄市公車 路線資料
 const apiKhRouteGet = () => apiBusRequest.get(`/Route/City/Kaohsiung?$format=JSON`)
 // API 取得高雄市公車 預估到站時間資料
-const apiEstimateTimeGet = () => apiBusRequest.get(`/EstimatedTimeOfArrival/City/Kaohsiung/301?$format=JSON`)
+const apiEstimateTimeGet = () => apiBusRequest.get(`/EstimatedTimeOfArrival/City/Kaohsiung/${selectRouteZh}?$format=JSON`)
 // API 取得高雄市公車 站序資料
 const apiStopRouteGet = () => apiBusRequest.get(`/StopOfRoute/City/Kaohsiung?$format=JSON`)
 
@@ -37,12 +35,12 @@ const apiStopRouteGet = () => apiBusRequest.get(`/StopOfRoute/City/Kaohsiung?$fo
 async function apiDataGet() {
   try {
     const apiKhRouteGetRes = await apiKhRouteGet()
-    const apiEstimateTimeGetRes = await apiEstimateTimeGet()
+    // const apiEstimateTimeGetRes = await apiEstimateTimeGet()
     const apiStopRouteGetRes = await apiStopRouteGet()
     KhRouteData = apiKhRouteGetRes.data
-    KhEstimateTimeData = apiEstimateTimeGetRes.data
+    // KhEstimateTimeData = apiEstimateTimeGetRes.data
     KhStopData = apiStopRouteGetRes.data
-    console.log('資料載入完畢')
+    console.log('KhRouteData, KhEstimateTimeData, KhStopData 資料載入完畢')
     runTask()
   }
   catch (err) {
@@ -53,16 +51,29 @@ apiDataGet() // 執行
 
 function runTask() {
 
-  // (效能待優化)
+  // temp variable
   let keyword = ''
+  // filter data
+  let estMatchData = []
+  let estForthData = []
+  let estBackData = []
+  let stopMatchData = []
+  let stopForthData = []
+  let stopBackData = []
+
+  let combinedForthData = []
+  let combinedData = []
+
+  // (效能待優化)
+  // ----- 關鍵字篩選列表渲染 -----
   function filterKeywordSearch(e) {
-    let str = ''
+    let routeItem = ''
     keyword = e.target.value
     const regex = new RegExp(keyword)
     KhRouteData.forEach(item => {
       let routeName = item['RouteName']['Zh_tw']
       if (regex.test(routeName)) {
-        str += `
+        routeItem += `
         <li class="filter__routeItem">
           <div
             class="filter__routeBtn"
@@ -74,12 +85,180 @@ function runTask() {
     })
     if (keyword) filterRouteListContainer.classList.add('active')
     else filterRouteListContainer.classList.remove('active')
-    filterRouteList.innerHTML = str
+    filterRouteList.innerHTML = routeItem
   }
 
-  function renderRoute(e) {
-    if (e.target.classList.contains(''))
-      console.log(e)
+  // 點擊公車路線後 Task
+  async function renderTask(e) {
+    try {
+      // 點擊儲存公車路線字串
+      saveRoute(e)
+      // 往/返按鈕初始化樣式
+      defaultDirectionBtn()
+      // 取得 公車預估到站資料
+      const apiEstimateTimeGetRes = await apiEstimateTimeGet()
+      KhEstimateTimeData = apiEstimateTimeGetRes.data
+      estDataMatchRouteName()
+      estForthDataFilter()
+      estBackDataFilter()
+      stopMatchDataFilter()
+      combinedForthDataHandler()
+      combinedBackDataHandler()
+      // 渲染畫面
+      forthListRender()
+      backListRender()
+    }
+    catch (err) {
+      console.error(err)
+    }
+  }
+
+  // 點擊公車路線後 => 儲存公車路線字串 'RouteName' > 'Zh_tw'
+  function saveRoute(e) {
+    if (!e.target.classList.contains('filter__routeBtn')) return
+    selectRouteZh = e.target.textContent
+    console.log(`查詢: ${selectRouteZh} 路線資料`)
+  }
+
+  // (Estimated Time) 找出完全符合 selectRouteZh 的資料
+  function estDataMatchRouteName() {
+    estMatchData = KhEstimateTimeData.filter(item => item['RouteName']['Zh_tw'] === selectRouteZh)
+    console.log('完全符合的預估到站時間資料: ', estMatchData)
+  }
+
+  // (Estimated Time) 完全符合 selectRouteZh 的資料 => 去程資料 Direction = 0
+  function estForthDataFilter() {
+    estForthData = estMatchData.filter(item => item['Direction'] === 0)
+    console.log('(去程)完全符合的預估到站時間資料: ', estForthData)
+  }
+
+  // (Estimated Time) 完全符合 selectRouteZh 的資料 => 返程資料 Direction = 1
+  function estBackDataFilter() {
+    estBackData = estMatchData.filter(item => item['Direction'] === 1)
+    console.log('(返程)完全符合的預估到站時間資料: ', estBackData)
+  }
+
+  // (Stop of Route) 找出完全符合 selectRouteZh 的資料
+  function stopMatchDataFilter() {
+    stopMatchData = KhStopData.filter(item => item['RouteName']['Zh_tw'] === selectRouteZh)
+    console.log('完全符合的站序資料: ', stopMatchData)
+    stopForthData = stopMatchData[0]['Stops']
+    stopBackData = stopMatchData[1]['Stops']
+    // console.log(stopForthData)
+    // console.log(stopBackData)
+  }
+
+  // function forthStopDataCombined() {
+  //   stopForthData
+  // }
+
+  function stopStatusTextHandler(status) {
+    switch (status) {
+      case 0:
+        console.log('正常')
+        statusText = '正常'
+        break
+      case 1:
+        console.log('尚未發車')
+        statusText = '尚未發車'
+        break
+      case 2:
+        console.log('交管不停靠')
+        statusText = '交管不停靠'
+        break
+      case 3:
+        console.log('末班車已過')
+        statusText = '末班車已過'
+        break
+      case 4:
+        console.log('今日未營運')
+        statusText = '今日未營運'
+        break
+      default:
+        console.log('未知')
+        statusText = '未知'
+    }
+    return statusText
+  }
+
+  function combinedForthDataHandler() {
+    stopForthData.forEach(stopForthItem => {
+      estForthData.forEach(estForthItem => {
+        if (stopForthItem['StopUID'] === estForthItem['StopUID']) {
+          stopForthItem['plateNumb'] = estForthItem['PlateNumb'] // 車牌號碼
+          stopForthItem['stopStatus'] = estForthItem['StopStatus'] // 車輛對站牌狀態
+          stopForthItem['estimateTime'] = estForthItem['EstimateTime'] ? estForthItem['EstimateTime'] : '' // 預估到站時間
+          stopForthItem['nextBusTime'] = estForthItem['NextBusTime']
+          stopForthItem['stopStatusText'] = stopStatusTextHandler(estForthItem['StopStatus'])
+        }
+      })
+    })
+    console.log('(去程)組合站序資料', stopForthData)
+  }
+
+  function combinedBackDataHandler() {
+    stopBackData.forEach(stopBackItem => {
+      estBackData.forEach(estBackItem => {
+        if (stopBackItem['StopUID'] === estBackItem['StopUID']) {
+          stopBackItem['plateNumb'] = estBackItem['PlateNumb'] // 車牌號碼
+          stopBackItem['stopStatus'] = estBackItem['StopStatus'] // 車輛對站牌狀態
+          stopBackItem['estimateTime'] = estBackItem['EstimateTime'] ? estBackItem['EstimateTime'] : '' // 預估到站時間
+          stopBackItem['nextBusTime'] = estBackItem['NextBusTime']
+          stopBackItem['stopStatusText'] = stopStatusTextHandler(estBackItem['StopStatus'])
+        }
+      })
+    })
+    console.log('(返程)組合站序資料', stopBackData)
+  }
+
+  function forthListRender() {
+    let routeItem = ''
+
+    stopForthData.forEach(item => {
+      let estimateTime = Math.floor(item['estimateTime'] / 60)
+      let estimateTimeText = ''
+
+      if (estimateTime === 0) estimateTimeText = '進站中'
+      else if (estimateTime <= 1 && estimateTime > 0) estimateTimeText = '即將進站'
+      else if (!estimateTime) estimateTimeText = '––'
+      else estimateTimeText = `${estimateTime} 分鐘`
+
+      routeItem += `
+      <li class="routeList__item">
+        <div class="routeList__mainInfo">
+          <div class="routeList__timeLeft">${estimateTimeText}</div>
+          <div class="routeList__stopInfo">${item['StopSequence']} / ${item['StopUID']} / ${item['StopName']['Zh_tw']}</div>
+        </div>
+        <div class="routeList__busID">${item['plateNumb']}</div>
+      </li>
+      `
+    })
+    forthRouteList.innerHTML = routeItem
+  }
+
+
+  function backListRender() {
+    let routeItem = ''
+    stopBackData.forEach(item => {
+      let estimateTime = Math.floor(item['estimateTime'] / 60)
+      let estimateTimeText = ''
+
+      if (estimateTime === 0) estimateTimeText = '進站中'
+      else if (estimateTime <= 1 && estimateTime > 0) estimateTimeText = '即將進站'
+      else if (!estimateTime) estimateTimeText = '––'
+      else estimateTimeText = `${estimateTime} 分鐘`
+
+      routeItem += `
+      <li class="routeList__item">
+        <div class="routeList__mainInfo">
+          <div class="routeList__timeLeft">${estimateTimeText}</div>
+          <div class="routeList__stopInfo">${item['StopUID']} / ${item['StopName']['Zh_tw']}</div>
+        </div>
+        <div class="routeList__busID">${item['plateNumb']}</div>
+      </li>
+      `
+    })
+    backRouteList.innerHTML = routeItem
   }
 
   // ----- 搜尋後預設呈現去程資料、去程按鈕狀態 -----
@@ -90,7 +269,7 @@ function runTask() {
     backRouteList.classList.remove('active')
   }
 
-  // ----- 切換 往/返 按鈕及列表顯示 -----
+  // ----- 切換 去程/返程 按鈕及列表顯示 -----
   function switchDirectionBtn(e) {
     const targetDirect = e.target.dataset.direct
     if (e.target.classList.contains('active')) return
@@ -111,7 +290,6 @@ function runTask() {
     })
   }
 
-
   // Filter 公車預估到站資料
 
   // Filter 公車路線站序資料
@@ -122,7 +300,7 @@ function runTask() {
   // ----- Event Listener -----
   keywordSearch.addEventListener('keyup', filterKeywordSearch, false)
   switchList.addEventListener('click', switchDirectionBtn, false)
-  filterRouteList.addEventListener('click', renderRoute, false)
+  filterRouteList.addEventListener('click', renderTask, false)
 
 }
 
