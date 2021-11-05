@@ -132,6 +132,10 @@ img {
   font-weight: 500;
 }
 
+.filter__routeName {
+  padding: 10px 0;
+}
+
 .filter__search {
   width: 100%;
   padding: 10px;

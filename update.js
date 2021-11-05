@@ -6,6 +6,8 @@ let KhStopData = []
 // temp variable
 let selectRouteZh = ''
 
+// Show Text
+const searchRouteName = document.querySelector('.filter__routeName')
 // Filter
 const keywordSearch = document.querySelector('.filter__search')
 const filterRouteListContainer = document.querySelector('.filter__listContainer')
@@ -55,7 +57,8 @@ function runTask() {
 
   // temp variable
   let keyword = ''
-  let countdown = 30
+  let countdown = 0
+  let timer
   // filter data
   let estMatchData = []
   let estForthData = []
@@ -88,11 +91,20 @@ function runTask() {
     filterRouteList.innerHTML = routeItem
   }
 
+  // Blur 關鍵字
+  function filterRouteListBlurClose() {
+
+  }
+
+  // Focus 關鍵字
+
   // 點擊公車路線後 Task
   async function renderTask(e) {
     try {
       // 點擊儲存公車路線字串
       saveRoute(e)
+      // 關閉搜尋篩選清單
+      filterRouteListAutoClose()
       // 往/返按鈕初始化樣式
       defaultDirectionBtn()
       // 取得 公車預估到站資料
@@ -118,7 +130,14 @@ function runTask() {
   function saveRoute(e) {
     if (!e.target.classList.contains('filter__routeBtn')) return
     selectRouteZh = e.target.textContent
+    searchRouteName.textContent = `當前搜尋 : ${selectRouteZh}`
     console.log(`查詢: ${selectRouteZh} 路線資料`)
+  }
+
+  function filterRouteListAutoClose() {
+    if (filterRouteListContainer.classList.contains('active')) {
+      filterRouteListContainer.classList.remove('active')
+    }
   }
 
   // (Estimated Time) 找出完全符合 selectRouteZh 的資料
@@ -334,8 +353,10 @@ function runTask() {
 
   // 30秒 自動更新
   function autoUpdateHandler() {
+    clearInterval(timer)
+    countdown = 30
     autoUpdateText.textContent = `${countdown} 秒後自動更新`
-    let timer = setInterval(() => {
+    timer = setInterval(() => {
       countdown--
       autoUpdateText.textContent = `${countdown} 秒後自動更新`
       if (countdown <= 0) {
@@ -374,15 +395,12 @@ function runTask() {
     })
   }
 
-  // Filter 公車預估到站資料
-
-  // Filter 公車路線站序資料
-
-
-  // (預備功能) 新增去程、新增倒數更新、手動更新、關鍵字選擇
+  // (預備功能) 新增去程、手動更新
 
   // ----- Event Listener -----
   keywordSearch.addEventListener('keyup', filterKeywordSearch, false)
+  keywordSearch.addEventListener('focus', filterKeywordSearch, false)
+  keywordSearch.addEventListener('blur', filterRouteListBlurClose, false)
   switchList.addEventListener('click', switchDirectionBtn, false)
   filterRouteList.addEventListener('click', renderTask, false)
 
