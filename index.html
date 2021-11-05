@@ -20,7 +20,7 @@
 
 <body>
   <div class="container">
-    <h1 class="title">KAOHSIUNG BUS ROUTE</h1>
+    <h1 class="title"><span>KAOHSIUNG</span>BUS ROUTE</h1>
     <div class="main">
       <div class="filter">
         <div class="filter__section">
@@ -64,24 +64,33 @@
           </li>
         </ul>
         <div class="autoUpdate"></div>
+        <ul class="column">
+          <li class="column__item">
+            <div class="column__estTimeText">預估到站</div>
+            <div class="column__routeInfo">站序 / 站牌代碼 / 站名</div>
+          </li>
+          <li class="column__item">
+            <div class="column__status">車輛狀態</div>
+          </li>
+        </ul>
         <ul
           class="routeList forthRouteList"
           data-direct="0"
         >
           <!-- 載入資料 -->
+          <!-- <li class="routeList__item">
+            <div class="routeList__mainInfo">
+              <div class="routeList__timeLeft" data-id="${item['StopUID']}">${estText}</div>
+              <div class="routeList__stopInfo">${item['StopSequence']} / ${item['StopID']} / ${item['StopName']['Zh_tw']}</div>
+            </div>
+            <div class="routeList__busID" data-id="${item['StopUID']}">${item['plateNumb'] ? item['plateNumb'] : item['stopStatusText']}</div>
+          </li> -->
         </ul>
         <ul
           class="routeList backRouteList"
           data-direct="1"
         >
           <!-- 載入資料 -->
-          <!-- <li class="routeList__item">
-            <div class="routeList__mainInfo">
-              <div class="routeList__timeLeft">${}</div>
-              <div class="routeList__stopInfo">${} / ${}</div>
-            </div>
-            <div class="routeList__busID">${}</div>
-          </li> -->
         </ul>
       </div>
     </div>

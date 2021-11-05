@@ -239,7 +239,7 @@ function runTask() {
     let estimateTimeText = ''
     if (estimateTime === 0) estimateTimeText = '進站中'
     else if (estimateTime <= 2 && estimateTime > 0) estimateTimeText = '即將進站'
-    else estimateTimeText = `${estimateTime} 分鐘`
+    else estimateTimeText = `${estimateTime}分鐘`
     return estimateTimeText
   }
 
