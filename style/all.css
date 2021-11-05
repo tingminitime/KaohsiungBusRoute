@@ -209,6 +209,9 @@ img {
   display: -webkit-box;
   display: -ms-flexbox;
   display: flex;
+  -webkit-box-align: center;
+      -ms-flex-align: center;
+          align-items: center;
   border-bottom: 1px solid #fff;
 }
 
@@ -251,9 +254,14 @@ img {
   margin-right: 12px;
 }
 
+.autoUpdate {
+  padding: 10px 5px;
+  text-align: right;
+  color: #fff;
+}
+
 .routeList {
   display: none;
-  padding: 5px 0;
 }
 
 .routeList__item {

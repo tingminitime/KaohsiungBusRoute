@@ -176,16 +176,16 @@ function filterBusEstimateTime(data) {
         nextBusTime: item['NextBusTime'], // 下一班公車時間
         stops: [
           {
+            stopUID: item['StopUID'], // 站牌識別代碼
             estimateTime: item['EstimateTime'], // 預估到站時間(秒)
-            stopUID: item['StopUID'] // 站牌識別代碼
           }
         ]
       })
     } else { // 有找到
       // 在同樣的 index 裡面的 stops 陣列 push 相同資料
       backData[index]['stops'].push({
+        stopUID: item['StopUID'], // 站牌識別代碼
         estimateTime: item['EstimateTime'], // 預估到站時間(秒)
-        stopUID: item['StopUID'] // 站牌識別代碼
       })
     }
   })
