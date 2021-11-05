@@ -396,6 +396,28 @@ img {
 
 .routeList {
   display: none;
+  max-height: 60vh;
+  overflow: auto;
+}
+
+.routeList::-webkit-scrollbar {
+  width: 6px;
+}
+
+.routeList::-webkit-scrollbar-track {
+  background-color: transparent;
+  border-radius: 6px;
+}
+
+.routeList::-webkit-scrollbar-thumb {
+  background-color: #eee;
+  border-radius: 6px;
+}
+
+@media (max-width: 767px) {
+  .routeList {
+    max-height: 40vh;
+  }
 }
 
 .routeList__item {

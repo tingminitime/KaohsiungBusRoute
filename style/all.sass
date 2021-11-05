@@ -185,6 +185,18 @@
 
 .routeList
   display: none
+  max-height: 60vh
+  overflow: auto
+  &::-webkit-scrollbar
+    width: 6px
+  &::-webkit-scrollbar-track
+    background-color: transparent
+    border-radius: 6px
+  &::-webkit-scrollbar-thumb
+    background-color: #eee
+    border-radius: 6px
+  +pad
+    max-height: 40vh
   &__item
     display: flex
     justify-content: space-between
